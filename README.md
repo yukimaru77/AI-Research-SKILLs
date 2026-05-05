@@ -17,12 +17,12 @@
 
 <div align="center">
 
-### **98 Skills Powering AI Research in 2026**
+### **134 Skills Powering AI Research in 2026**
 
 </div>
 
 <details>
-<summary><b>View All 23 Categories</b></summary>
+<summary><b>View All 29 Categories</b></summary>
 
 <div align="center">
 
@@ -36,6 +36,8 @@
 | **Multimodal** (7) | **Prompt Engineering** (4) | **MLOps** (3) |
 | **Observability** (2) | **Infrastructure** (3) | **Mech Interp** (4) |
 | **Emerging Techniques** (6) | **Agent-Native Research Artifact** (3) | |
+| **3D Reconstruction** (7) | **3D Segmentation & Articulation** (6) | **Affordance VLM** (5) |
+| **3D Rendering & VR** (6) | **Physics Simulation** (7) | **Digital Twin Workflows** (5) |
 
 </div>
 
@@ -95,7 +97,7 @@ npx @orchestra-research/ai-research-skills
 Read https://www.orchestra-research.com/ai-research-skills/welcome.md and follow the instructions to install and use AI Research Skills.
 ```
 
-This installs all 98 skills, loads the **autoresearch** orchestration layer, and starts autonomous research.
+This installs all 134 skills, loads the **autoresearch** orchestration layer, and starts autonomous research.
 
 <details>
 <summary><b>What the installer does</b></summary>
@@ -131,7 +133,7 @@ Install skill categories directly using the **Claude Code CLI**:
 # Add the marketplace
 /plugin marketplace add orchestra-research/AI-research-SKILLs
 
-# Install by category (23 categories available)
+# Install by category (29 categories available)
 /plugin install fine-tuning@ai-research-skills        # Axolotl, LLaMA-Factory, PEFT, Unsloth
 /plugin install post-training@ai-research-skills      # TRL, GRPO, OpenRLHF, SimPO, verl, slime, miles, torchforge
 /plugin install inference-serving@ai-research-skills  # vLLM, TensorRT-LLM, llama.cpp, SGLang
@@ -141,7 +143,7 @@ Install skill categories directly using the **Claude Code CLI**:
 
 </details>
 
-### All 23 Categories (98 Skills)
+### All 29 Categories (134 Skills)
 
 | Category | Skills | Included |
 |----------|--------|----------|
@@ -168,9 +170,15 @@ Install skill categories directly using the **Claude Code CLI**:
 | Multimodal | 7 | CLIP, Whisper, LLaVA, BLIP-2, SAM, Stable Diffusion, AudioCraft |
 | Emerging | 6 | MoE, Model Merging, Long Context, Speculative Decoding, Distillation, Pruning |
 | Agent-Native Research Artifact | 3 | ARA Compiler, Research Manager, Rigor Reviewer |
+| 3D Reconstruction | 7 | Preprocessing Videos, SfM Camera Poses, Pose-Free Geometry, Gaussian Splats, GS Surfaces, Reflection-Aware Splats, NeRF Fallbacks |
+| 3D Segmentation & Articulation | 6 | Per-Gaussian SAGA, Ditto Articulation Prior, ScrewSplat, gsplat Scene Adapter, LUDVIG Mask Uplifting, Multi-State Diff Open3D |
+| Affordance VLM | 5 | Multi-View Joint Cards Renderer, Qwen3-VL Affordance Prompter, Kinematic JSON Constrained Decode, Articulation Priors Retrieval, VLM Physics Validation Loop |
+| 3D Rendering & VR | 6 | Compiling Splat Assets, SuperSplat WebXR, Quest Spatial Splats, Unity Splats, Unreal XScene Splats, SuperSplat Scene Editing |
+| Physics Simulation | 7 | Genesis Physics, URDF/MJCF/USD Authoring, Collision Meshes, MuJoCo/MJX, Isaac Sim/Lab, SAPIEN Articulations, SysID RL Hooks |
+| Digital Twin Workflows | 5 | Multi-State Capture Protocol, Versioning Twins with ARA, Lab Equipment Twinning, Validating Digital Twins, Simulating Experiment Runs |
 
 <details>
-<summary><b>View All 98 Skills in Details</b></summary>
+<summary><b>View All 134 Skills in Details</b></summary>
 
 ### 🔬 Autoresearch (1 skill) — Central Orchestration Layer
 - **[Autoresearch](0-autoresearch-skill/)** - Autonomous research orchestration using a two-loop architecture (inner optimization + outer synthesis). Manages the full lifecycle from literature survey to paper writing, routing to all domain-specific skills. Supports Claude Code /loop and OpenClaw heartbeat for continuous operation (390 lines + 3 refs)
@@ -309,6 +317,54 @@ Install skill categories directly using the **Claude Code CLI**:
 - **[ARA Research Manager](22-agent-native-research-artifact/research-manager/)** - Post-task research recorder that runs at session end to extract decisions, experiments, dead ends, and pivots from conversation history into the `ara/` directory with user-vs-AI provenance tags (324 lines + 3 refs)
 - **[ARA Rigor Reviewer](22-agent-native-research-artifact/rigor-reviewer/)** - ARA Seal Level 2 semantic epistemic review scoring six dimensions of research rigor (evidence relevance, falsifiability, scope, coherence, exploration integrity, methodology) with severity-ranked findings (322 lines + 1 ref)
 
+### 🎥 3D Reconstruction (7 skills)
+- **[Preprocessing Reconstruction Videos](23-3d-reconstruction/preprocessing-reconstruction-videos/)** - Preprocesses raw lab-equipment videos into curated keyframes, foreground masks, and camera-ready image sets for SfM/3DGS pipelines using FFmpeg, BiRefNet/SAM2, and pycolmap on Linux Docker A100
+- **[Estimating SfM Camera Poses](23-3d-reconstruction/estimating-sfm-camera-poses/)** - Provides Structure-from-Motion camera pose estimation using COLMAP 4.0.4 with GLOMAP, hloc+SuperPoint+LightGlue, and AprilTag/ChArUco metric Sim3 alignment to produce sparse models for downstream 3DGS or NeRF training
+- **[Recovering Pose-Free Geometry](23-3d-reconstruction/recovering-pose-free-geometry/)** - Provides pose-free dense 3D geometry recovery using MapAnything, VGGT, DUSt3R, and MASt3R when COLMAP fails on specular metals or low-texture lab surfaces
+- **[Training Gaussian Splats](23-3d-reconstruction/training-gaussian-splats/)** - Provides primary 3D Gaussian Splatting training using nerfstudio splatfacto (gsplat 1.5.3) with AprilTag metric-scale preservation and per-cluster training for lab-equipment digital twins on Linux A100
+- **[Extracting GS Surfaces](23-3d-reconstruction/extracting-gs-surfaces/)** - Provides surface and mesh extraction from 3D Gaussian Splatting using 2DGS, GOF, PGSR, and SuGaR for physics-grade collision meshes destined for MuJoCo/Genesis/Isaac simulation
+- **[Training Reflection-Aware Splats](23-3d-reconstruction/training-reflection-aware-splats/)** - Provides reflection-aware and specular-aware 3DGS training (Spec-Gaussian, Ref-GS) for polished steel, anodized aluminum, SEM exteriors, and glass surfaces where vanilla 3DGS produces floaters
+- **[Training NeRF Fallbacks](23-3d-reconstruction/training-nerf-fallbacks/)** - Provides NeRF-based fallback rendering using Nerfacto and Instant-NGP when 3DGS variants fail on transparent specimens, sub-millimeter SEM aperture detail, or fundamentally hard specular geometry
+
+### ✂️ 3D Segmentation & Articulation (6 skills)
+- **[Per-Gaussian SAGA](24-3d-segmentation-articulation/per-gaussian-saga/)** - Uses SAGA/SegAnyGAussians to train a per-Gaussian contrastive affinity field from SAM masks and emit boolean per-Gaussian masks for lab-equipment digital-twin R&D
+- **[Articulation Ditto Prior](24-3d-segmentation-articulation/articulation-ditto-prior/)** - Provides before/after point-cloud articulation hypothesis generation using the Ditto CVPR 2022 prior as a sidecar validator alongside multi-state differencing for furniture-like joint classes
+- **[ScrewSplat Articulation](24-3d-segmentation-articulation/screwsplat-articulation/)** - Research-reference skill for ScrewSplat, a GS-native method that jointly optimizes Gaussians and screw axes from multi-state RGB to recover revolute and prismatic joint axes
+- **[gsplat Scene Adapter](24-3d-segmentation-articulation/gsplat-scene-adapter/)** - Wraps gsplat (Apache-2.0, v1.5.3) as the canonical PLY I/O, depth-render, and visibility-filter adapter layer consumed by downstream segmentation and articulation skills
+- **[Lift 2D Masks (LUDVIG)](24-3d-segmentation-articulation/lift-2d-masks-ludvig/)** - Uses Naver LUDVIG (DINOv2+SAM+SAM2+CLIP) to lift per-view masks and dense features into per-Gaussian features and a pruned gaussians.ply for internal R&D (non-commercial license)
+- **[Multi-State Diff Open3D](24-3d-segmentation-articulation/multistate-diff-open3d/)** - Compares two reconstructed point clouds of lab equipment in different mechanical states to extract moving regions, fit per-part SE(3) transforms, and classify revolute/prismatic/screw joints via RANSAC+ICP alignment
+
+### 🤖 Affordance VLM (5 skills)
+- **[Multi-View Joint Cards Renderer](25-affordance-vlm/multiview-joint-cards-renderer/)** - Renders canonical multi-view "card" images of a 3DGS scene using gsplat and composites them into a grid image for a downstream VLM affordance/joint-detection pass
+- **[Qwen3-VL Affordance Prompter](25-affordance-vlm/qwen3-vl-affordance-prompter/)** - Prompts Qwen3.6-27B or Qwen3.6-35B-A3B locally on a single A100 80GB to predict articulation and affordance hypotheses for segmented 3DGS parts of lab equipment
+- **[Kinematic JSON Constrained Decode](25-affordance-vlm/kinematic-json-constrained-decode/)** - Forces VLMs and LLMs to emit strict kinematic JSON for lab-equipment joint prediction using OpenAI Structured Outputs, vLLM XGrammar, Outlines, and Pydantic validation with a repair loop
+- **[Articulation Priors Retrieval](25-affordance-vlm/articulation-priors-retrieval/)** - Retrieves articulation and kinematic priors from PartNet-Mobility, GAPartNet, and AKB-48 to regularize VLM joint-type and axis predictions for lab-equipment digital twins
+- **[VLM Physics Validation Loop](25-affordance-vlm/vlm-physics-validation-loop/)** - Closes the loop between a VLM joint hypothesis and a physics/geometry validator by sampling joint parameters, scoring with collision checks, and re-prompting the VLM with failure evidence
+
+### 🥽 3D Rendering & VR (6 skills)
+- **[Compiling Splat Assets](26-3d-rendering-vr/compiling-splat-assets/)** - Conditions, compresses, and packages trained 3DGS .ply files into deployable artifacts (SOG/streamed LOD for browser/WebXR, .spz for Quest 3 native, GLB for Unity/Unreal import)
+- **[Publishing SuperSplat WebXR](26-3d-rendering-vr/publishing-supersplat-webxr/)** - Publishes SEM 3DGS scenes as no-install HTTPS URLs renderable in desktop browsers, Quest 3 Browser, Pico 4 Browser, and Apple Vision Pro Safari with optional WebXR immersive-vr entry
+- **[Deploying Quest Spatial Splats](26-3d-rendering-vr/deploying-quest-spatial-splats/)** - Builds a native Meta Quest 3/3S standalone APK that loads a single SEM 3DGS scene using Meta Spatial SDK's first-party Gaussian splat integration (v0.12.0, April 2026)
+- **[Rendering Unity Splats](26-3d-rendering-vr/rendering-unity-splats/)** - Renders 3D Gaussian Splats inside Unity 6 for PCVR (SteamVR/Quest Link) and experimental Quest 3 standalone builds using aras-p/UnityGaussianSplatting with OpenXR Multi-Pass
+- **[Rendering Unreal XScene Splats](26-3d-rendering-vr/rendering-unreal-xscene-splats/)** - Renders SEM 3DGS scenes inside Unreal Engine 5 for high-fidelity PCVR training (Quest Link/Quest Pro Link) and cinematic content authoring using DazaiStudio/SplatRenderer-UEPlugin for UE5.5–5.7
+- **[Editing SuperSplat Scenes](26-3d-rendering-vr/editing-supersplat-scenes/)** - Cleans, crops, inspects, annotates, and packages trained SEM 3DGS scenes for trainee authoring using PlayCanvas SuperSplat Editor v2.25.0 (web app/PWA)
+
+### ⚙️ Physics Simulation (7 skills)
+- **[Prototyping Genesis Physics](27-physics-simulation/prototyping-genesis-physics/)** - Research sandbox using Genesis (genesis-world) for fast Pythonic GPU physics experiments, multiphysics prototyping (MPM, granular, fluid, deformable), and differentiable physics exploration
+- **[Authoring URDF/MJCF/USD](27-physics-simulation/authoring-urdf-mjcf-usd/)** - Programmatically authors lab-equipment digital-twin descriptions in three synchronized formats (URDF, MJCF, USD) from a single neutral component dictionary for multi-simulator interchange
+- **[Conditioning Collision Meshes](27-physics-simulation/conditioning-collision-meshes/)** - Converts raw 3DGS-derived visual meshes into physics-engine-ready collision geometry for MuJoCo 3.x, Isaac Sim/Lab 4.x+, SAPIEN 3.x, and Genesis via CoACD convex decomposition
+- **[Simulating MuJoCo/MJX](27-physics-simulation/simulating-mujoco-mjx/)** - Default simulator skill for lab-equipment digital twins: generates MJCF, validates it, runs CPU MuJoCo for authoring and debugging, then uses MJX (JAX backend) for batched GPU rollouts and parameter sweeps
+- **[Validating Isaac Sim/Lab](27-physics-simulation/validating-isaac-sim-lab/)** - Secondary validation and export skill that loads URDF/MJCF/USD assets in NVIDIA Isaac Sim 5.1 + Isaac Lab 2.3.x to check articulation semantics and support USD/Omniverse workflows
+- **[Validating SAPIEN Articulations](27-physics-simulation/validating-sapien-articulations/)** - Cross-simulator articulation sanity-check using SAPIEN 3.x (PhysX 5 GPU) to verify joint axes, prismatic limits, and collision groups as a second opinion against MuJoCo
+- **[Calibrating SysID RL Hooks](27-physics-simulation/calibrating-sysid-rl-hooks/)** - Calibrates sim parameters (joint friction, damping, motor gains, contact friction) to match real lab measurements using Optuna outer-loop search and exposes Gymnasium-compatible wrappers
+
+### 🔬 Digital Twin Workflows — META (5 skills)
+- **[Multi-State Capture Protocol](28-digital-twin-workflows/multi-state-capture-protocol/)** - Produces an executable K-state photo and video capture protocol for digital-twin reconstruction of laboratory equipment (SEM, optical microscopes, optical benches) with per-state camera placement guidance
+- **[Versioning Twins with ARA](28-digital-twin-workflows/versioning-twins-with-ara/)** - Packages a digital twin as a reproducible, versioned, citeable research artifact using OpenUSD 26.x as canonical scene format and ARA as the provenance and cognitive layer with SPDX/CycloneDX BOMs
+- **[Lab Equipment Twinning](28-digital-twin-workflows/lab-equipment-twinning/)** - Orchestrates the end-to-end build of a digital twin of laboratory equipment (SEM, optical microscope, optical bench) from handheld video capture to validated VR/simulator/agent-planning runtime
+- **[Validating Digital Twins](28-digital-twin-workflows/validating-digital-twins/)** - META gate-keeper skill that runs strict numerical QA across the full SEM/lab-equipment digital-twin pipeline (capture → pose → 3DGS → surface → segmentation → affordance → articulation → physics → VR), emitting qa_report.json
+- **[Simulating Experiment Runs in Twins](28-digital-twin-workflows/simulating-experiment-runs-in-twins/)** - META skill for running simulated experiment campaigns inside a validated ARA-versioned digital twin, orchestrating parameter sweeps, protocol replay sequences, and batch RL training runs via Hydra+Optuna+W&B
+
 
 </details>
 
@@ -424,6 +480,12 @@ claude-ai-research-skills/
 ├── 20-ml-paper-writing/         (2 skills ✓ - ML Paper Writing with LaTeX templates, Academic Plotting)
 ├── 21-research-ideation/           (2 skills ✓ - Research Brainstorming, Creative Thinking)
 ├── 22-agent-native-research-artifact/ (3 skills ✓ - ARA Compiler, Research Manager, Rigor Reviewer)
+├── 23-3d-reconstruction/        (7 skills ✓ - Preprocessing Videos, SfM Camera Poses, Pose-Free Geometry, Gaussian Splats, GS Surfaces, Reflection-Aware Splats, NeRF Fallbacks)
+├── 24-3d-segmentation-articulation/ (6 skills ✓ - Per-Gaussian SAGA, Ditto Prior, ScrewSplat, gsplat Adapter, LUDVIG, Multi-State Diff Open3D)
+├── 25-affordance-vlm/           (5 skills ✓ - Multi-View Cards, Qwen3-VL Prompter, Kinematic JSON Decode, Articulation Priors, VLM Physics Validation)
+├── 26-3d-rendering-vr/          (6 skills ✓ - Compiling Assets, SuperSplat WebXR, Quest Spatial Splats, Unity Splats, Unreal XScene Splats, SuperSplat Editing)
+├── 27-physics-simulation/       (7 skills ✓ - Genesis Physics, URDF/MJCF/USD, Collision Meshes, MuJoCo/MJX, Isaac Sim/Lab, SAPIEN, SysID RL Hooks)
+├── 28-digital-twin-workflows/   (5 skills ✓ META - Multi-State Capture, Versioning with ARA, Lab Equipment Twinning, Validating Twins, Simulating Experiment Runs)
 └── packages/ai-research-skills/ (npm package for one-command installation)
 ```
 
@@ -506,6 +568,21 @@ We welcome contributions from the AI research community! See [CONTRIBUTING.md](C
 ## Recent Updates
 
 <details open>
+<summary><b>May 2026 - v2.0.0 — Lab-Equipment Digital Twin Pipeline — 6 New Categories, 36 Skills (134 Total)</b></summary>
+
+- **NEW CATEGORIES 23–28**: End-to-end lab-equipment digital twin (SEM virtualization) pipeline targeting Linux Docker A100, covering video capture through VR rendering and physics simulation
+- **[23-3d-reconstruction/](23-3d-reconstruction/)** (7 skills) — Video preprocessing, SfM camera pose estimation, pose-free geometry recovery, Gaussian Splatting training, GS surface extraction, reflection-aware splats, and NeRF fallbacks
+- **[24-3d-segmentation-articulation/](24-3d-segmentation-articulation/)** (6 skills) — Per-Gaussian segmentation (SAGA), articulation prior (Ditto), ScrewSplat, gsplat adapter, LUDVIG mask uplifting, and multi-state differencing via Open3D
+- **[25-affordance-vlm/](25-affordance-vlm/)** (5 skills) — Multi-view joint cards renderer, Qwen3-VL affordance prompter, kinematic JSON constrained decoding, articulation priors retrieval, and VLM physics validation loop
+- **[26-3d-rendering-vr/](26-3d-rendering-vr/)** (6 skills) — Splat asset compilation, SuperSplat WebXR publishing, Quest 3 native APK deployment, Unity 6 rendering, Unreal Engine 5 rendering, and SuperSplat scene editing
+- **[27-physics-simulation/](27-physics-simulation/)** (7 skills) — Genesis prototyping, URDF/MJCF/USD authoring, collision mesh conditioning, MuJoCo/MJX simulation, Isaac Sim/Lab validation, SAPIEN cross-validation, and SysID RL calibration
+- **[28-digital-twin-workflows/](28-digital-twin-workflows/)** (5 META skills) — Multi-state capture protocol, ARA-based twin versioning, lab equipment twinning orchestrator, pipeline QA gate-keeper, and experiment simulation campaigns
+- All 36 new skills are v2.0.0, Deep_thinker-verified, with YAML frontmatter including license notes (many tools carry non-commercial restrictions — see individual SKILL.md files)
+- **134 total skills** across **29 categories**
+
+</details>
+
+<details>
 <summary><b>April 2026 - v1.6.0 🧬 Agent-Native Research Artifact (ARA) — 23rd Category, 98 Skills</b></summary>
 
 - 🧬 **NEW CATEGORY**: `22-agent-native-research-artifact/` (the 23rd category) — three skills that turn research outputs into a falsifiable, agent-traversable artifact:

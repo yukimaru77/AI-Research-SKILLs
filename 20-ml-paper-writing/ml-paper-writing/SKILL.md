@@ -1,10 +1,10 @@
 ---
 name: ml-paper-writing
 description: Write publication-ready ML/AI papers for NeurIPS, ICML, ICLR, ACL, AAAI, COLM. Use when drafting papers from research repos, structuring arguments, verifying citations, or preparing camera-ready submissions. For systems venues (OSDI, NSDI, ASPLOS, SOSP), use systems-paper-writing instead.
-version: 1.2.0
+version: 1.3.0
 author: Orchestra Research
 license: MIT
-tags: [Academic Writing, NeurIPS, ICML, ICLR, ACL, AAAI, COLM, LaTeX, Paper Writing, Citations, Research]
+tags: [Academic Writing, NeurIPS, ICML, ICLR, ACL, AAAI, COLM, LaTeX, Paper Writing, Citations, Research, Deep Thinker, Deep Researcher]
 dependencies: [semanticscholar, arxiv, habanero, requests]
 ---
 
@@ -87,6 +87,29 @@ Then verify results with Semantic Scholar API and fetch BibTeX via DOI.
 
 ---
 
+## Sounding Boards: `deep_thinker` and `deep_researcher` (USE FREQUENTLY FOR PAPER WRITING)
+
+Paper writing benefits enormously from external pushback. Hand off to `deep_thinker` at every framing decision and use `deep_researcher` for related-work surveys. Calling these tools is part of the workflow, not a fallback.
+
+| Tool | Latency | When in paper writing |
+|---|---|---|
+| **`mcp__chatgpt__deep_thinker`** | ~5–10 min | Stress-test the abstract, debate the contribution framing, find 3–10 specific related papers, get reviewer-style critique on a section, compare alternative paper structures, validate that a claim is properly supported by your results, sanity-check whether a related work paragraph is accurate. **Multi-turn pushback is encouraged.** Treat it as an experienced co-author. |
+| **`mcp__chatgpt__deep_researcher`** | ~1–2 hr | Full Related Work survey (50–300 papers): when you need to be confident your contribution is genuinely novel, or when targeting a venue where Related Work is judged harshly. Call once per paper, ideally at outline stage so it informs framing. |
+
+**Key uses for `deep_thinker` during writing**:
+- "Here's my abstract draft. What's the weakest sentence and why?"
+- "I'm framing the contribution as X. Steelman framing it as Y instead — which is stronger for {venue}?"
+- "Read this Related Work paragraph. Are any cited papers misrepresented? What's missing?"
+- "Reviewer just sent {comment}. Help me draft a 3-paragraph rebuttal."
+- "I want to claim {X}. Do my results actually support it, or am I overclaiming?"
+- "Draft a 'Limitations' section that's honest but doesn't damage acceptance odds."
+
+**Save important exchanges** to `paper/_deep_thinker_<section>_<date>.md` so co-authors can see the reasoning trail.
+
+**Anti-pattern**: writing the entire paper without ever pushing a draft section to `deep_thinker`. Reviewers will surface what `deep_thinker` would have caught — better to find it pre-submission.
+
+---
+
 ## Workflow 0: Starting from a Research Repository
 
 When beginning paper writing, start by understanding the project:
@@ -140,10 +163,18 @@ Before writing, explicitly confirm with the scientist:
 
 **Never assume the narrative—always verify with the human.**
 
+**`deep_thinker` checkpoint before locking framing**: Send a one-paragraph summary of the project + your candidate framing, and ask: "Steelman 2 alternative framings of this contribution. For each (including mine), rate (a) novelty, (b) defensibility against reviewers, (c) story strength. Recommend the strongest." Discuss its output with the scientist before committing.
+
 **Step 4: Search for Additional Literature**
 
-Use web search to find relevant papers:
+**Tier 1 — `mcp__chatgpt__deep_researcher`** (use once, at outline stage): "Survey related work for a paper that contributes {X} in {domain}. Cover: (a) closest 10–20 prior works with explicit contrast points, (b) relevant survey papers, (c) any concurrent work (last 6 months on arXiv), (d) classical references the venue expects. Return ~50 papers grouped by relation to our work." This single call replaces hours of cold searching and gives you a defensible Related Work spine.
 
+**Tier 2 — `mcp__chatgpt__deep_thinker`** (use frequently, ~5 min each):
+- "Find me 3 papers that compare {method A} vs {method B} on {benchmark C}."
+- "I claim {X} is novel. Find any paper from the last 5 years that contradicts this — be aggressive."
+- "What's the correct citation for the claim that {Y}?"
+
+**Tier 3 — Targeted retrieval** for specific BibTeX:
 ```
 Search queries to try:
 - "[main technique] + [application domain]"
@@ -152,7 +183,7 @@ Search queries to try:
 - Author names from existing citations
 ```
 
-Then verify and retrieve BibTeX using the citation workflow below.
+Then verify and retrieve BibTeX using the citation workflow below. **Always programmatically verify** — even when `deep_thinker` names a paper, fetch its real metadata via Semantic Scholar / CrossRef before citing.
 
 **Step 5: Deliver a First Draft**
 

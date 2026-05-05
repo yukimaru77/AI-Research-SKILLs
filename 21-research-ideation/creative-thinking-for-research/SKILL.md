@@ -1,10 +1,10 @@
 ---
 name: creative-thinking-for-research
 description: Applies cognitive science frameworks for creative thinking to CS and AI research ideation. Use when seeking genuinely novel research directions by leveraging combinatorial creativity, analogical reasoning, constraint manipulation, and other empirically grounded creative strategies.
-version: 1.0.0
+version: 1.1.1
 author: Orchestra Research
 license: MIT
-tags: [Creative Thinking, Research Ideation, Analogical Reasoning, Problem Reformulation, Cognitive Science]
+tags: [Creative Thinking, Research Ideation, Analogical Reasoning, Problem Reformulation, Cognitive Science, Deep Thinker, Deep Researcher, Parallel Sub-Agents]
 dependencies: []
 ---
 
@@ -26,6 +26,23 @@ Eight empirically grounded frameworks from cognitive science, applied to compute
 - You need a literature survey (use `scientific-skills:literature-review`)
 
 **Relationship to Brainstorm skill**: The brainstorm skill provides operational workflows (diverge → converge → refine) and practical filters. This skill provides the deeper cognitive engines that power creative leaps. Use them together: creative-thinking to generate raw insight, brainstorm to structure and evaluate it.
+
+---
+
+## Sounding Boards: `deep_thinker` and `deep_researcher` (NON-NEGOTIABLE)
+
+Creative thinking without an external sparring partner devolves into self-confirming noise. **Every framework below has at least one moment where you must hand off to `deep_thinker`** — the entire point of these cognitive frameworks is to expose your reasoning to forces outside your own head, and `deep_thinker` is the most accessible such force.
+
+| Tool | Latency | When |
+|---|---|---|
+| **`mcp__chatgpt__deep_thinker`** | ~5–10 min | Validate that a bisociation is structural not surface; confirm an analogy preserves causal structure; pressure-test a problem reformulation; check whether a constraint is truly hidden or just under-acknowledged; rate whether a Janusian synthesis is a real synthesis or a compromise. **Multi-turn pushback is encouraged** — if its first answer is shallow, push: "go deeper, name papers, give me failure modes." |
+| **`mcp__chatgpt__deep_researcher`** | ~1–2 hr | Use ONCE before a deep creative session to map the field's existing analogies, prior reformulations, and the current "adjacent possible" enablers (Framework 7). Avoid re-running for every framework. |
+
+**Briefing well**: dump full domain context, state your candidate idea or analogy, ask for SPECIFIC outputs ("name 5 papers", "rate structural fidelity 1–5 with reasons", "give me 3 counter-examples"). Don't be brief — these tools reward dense prompts.
+
+**Calibration**: if you finish a creative session having called `deep_thinker` fewer than 5 times, you ran too shallow. The frameworks here are designed to be paired with external reasoning.
+
+**PARALLELIZE via sub-agents**. When validating K analogies or K bisociation cells, spawn K sub-agents (Agent tool) in one message — each calling `deep_thinker` on one candidate. Validation is embarrassingly parallel; serial calls waste wall-clock. Same applies to `deep_researcher` for landscape maps: split into 3–6 sub-topics and run sub-agents in parallel.
 
 ---
 
@@ -65,6 +82,8 @@ Novel ideas arise from combining existing concepts in unexpected ways. Arthur Ko
 - [ ] Does the combination generate testable predictions?
 - [ ] Would an expert in both fields find the connection non-obvious but sound?
 
+**`deep_thinker` checkpoint**: For each candidate cell from your matrix, send the bisociation: "I'm proposing to apply {concept A from domain X} to {problem B in domain Y}. Is this a structural mapping (mechanisms transfer) or surface metaphor (labels match but mechanisms diverge)? Name 1–2 prior attempts at similar transfers if any. Rate structural fidelity 1–5." Discard surface metaphors immediately — they look creative but produce thin papers.
+
 ---
 
 ## Framework 2: Problem Reformulation (Representational Change)
@@ -101,6 +120,8 @@ Gestalt psychologists identified that breakthroughs often come not from solving 
 - **Dropout**: Reformulated "prevent overfitting" from regularization to approximate ensemble
 - **Attention**: Reformulated "handle long sequences" from remembering everything to selectively querying
 
+**`deep_thinker` checkpoint**: After step 3, send your reformulations: "Original problem: {X}. I've generated 3 reformulations: {list}. For each, (a) has someone already attempted this reformulation? name them. (b) does the reformulation actually change the difficulty class, or just rename it? (c) which is most likely to yield a publishable insight?" This separates real reformulation from cosmetic rephrasing.
+
 ---
 
 ## Framework 3: Analogical Reasoning (Structure-Mapping)
@@ -134,6 +155,11 @@ Dedre Gentner's **structure-mapping theory** and Kevin Dunbar's studies of real 
 - [ ] Can I identify at least one prediction the analogy makes in my domain?
 - [ ] Would an expert in the source domain confirm the mechanism is correctly understood?
 - [ ] Is the analogy non-obvious to my target audience?
+
+**`deep_thinker` checkpoint** (use this for EACH candidate analogy — Dunbar's data shows distant analogies require expert validation):
+- Turn 1: "I claim {source domain mechanism} is structurally analogous to {target domain problem}. Critique: where does the mapping break? What's the strongest disanalogy?"
+- Turn 2: "Steelman the analogy: assuming I can patch the disanalogies, what concrete prediction does it make in the target domain that current methods don't?"
+- Turn 3: "Has any prior paper used this analogy explicitly? Name them, even if from very distant fields." If 0 hits → likely novel; if many hits → check whether your variant adds anything.
 
 ---
 
@@ -171,6 +197,8 @@ Margaret Boden's framework distinguishes three forms of creativity based on how 
 - "Training requires human labels" → dropped → self-supervised learning
 - "Models must be deterministic" → dropped → variational methods, diffusion
 - "Inference must happen in one pass" → dropped → iterative refinement, chain-of-thought
+
+**`deep_thinker` checkpoint**: Send your constraint list with classifications. Ask: "Audit my hard/soft/hidden labels. Specifically: (1) which constraints I called 'hard' are actually 'soft' under modern conditions? (2) are there hidden constraints I haven't named? (3) for each soft/hidden one, has someone already published the result of relaxing it? name them." Hidden constraints are the most fertile and the hardest to spot alone — this is where `deep_thinker` earns its keep.
 
 ---
 
@@ -306,31 +334,37 @@ Albert Rothenberg's studies of eminent creators found that **holding two contrad
 - [ ] Is the synthesis a new idea, not just a compromise (splitting the difference)?
 - [ ] Does the resolution change how people think about the problem, not just the solution?
 
+**`deep_thinker` checkpoint**: Janusian thinking is the most prone to self-deception (you can imagine you've synthesized when you've just rephrased). Send: "I claim a synthesis between {A} and {B} via {mechanism}. Three diagnostic questions: (1) is this a true synthesis or a compromise / Pareto-point selection? (2) what would falsify the synthesis empirically? (3) which papers tackled the same A-vs-B tension — did any reach a similar synthesis?" Iterate until the answer is unambiguous.
+
 ---
 
 ## Combining Frameworks: A Creative Thinking Protocol
 
-These frameworks are most powerful in combination. Here is a systematic protocol for a deep creative thinking session:
+These frameworks are most powerful in combination. Here is a systematic protocol for a deep creative thinking session.
 
-### Phase 1: Map the Space (15 min)
-1. **Constraint Manipulation** (F4): List all constraints of the current paradigm. Mark which are hard, soft, hidden.
-2. **Adjacent Possible** (F7): List recent enablers that change the feasibility landscape.
+**Pre-session (one-time)**: call `mcp__chatgpt__deep_researcher` for a landscape map of existing analogies, prior reformulations, and current "adjacent possible" enablers in your area. Save to `literature/_deep_research_<area>_<date>.md`. This grounds every framework below.
 
-### Phase 2: Generate Disruptions (30 min)
-3. **Negation** (F5): Negate 3 soft/hidden constraints. What systems emerge?
-4. **Bisociation** (F1): Pick a distant field and create a cross-product matrix with your domain.
-5. **Problem Reformulation** (F2): Restate your problem 3 different ways (change objective, formalism, agent).
+### Phase 1: Map the Space (15 min + `deep_thinker` calls)
+1. **Constraint Manipulation** (F4): List constraints, classify hard/soft/hidden → `deep_thinker` to audit your classification (see F4 checkpoint)
+2. **Adjacent Possible** (F7): List recent enablers → `deep_thinker`: "Which of these enablers has the most under-explored adjacent possibles right now?"
 
-### Phase 3: Deepen Promising Leads (30 min)
-6. **Analogical Reasoning** (F3): For each promising idea, find a structural analogy and extract predictions.
-7. **Abstraction Laddering** (F6): Move each idea up (generalize) and down (specialize).
-8. **Janusian Thinking** (F8): Identify any tensions. Can you synthesize rather than choose?
+### Phase 2: Generate Disruptions (30 min, `deep_thinker` between each step)
+3. **Negation** (F5): Negate 3 soft/hidden constraints → `deep_thinker`: "for each negation, has it been tried? what failed?"
+4. **Bisociation** (F1): Cross-product matrix → `deep_thinker` checkpoint validates structural fidelity
+5. **Problem Reformulation** (F2): 3 reformulations → `deep_thinker` checkpoint separates real reformulation from rephrasing
 
-### Phase 4: Evaluate (15 min)
+### Phase 3: Deepen Promising Leads (30 min, `deep_thinker` per lead)
+6. **Analogical Reasoning** (F3): Multi-turn `deep_thinker` round per analogy (see F3 checkpoint — 3 turns)
+7. **Abstraction Laddering** (F6): `deep_thinker`: "for each rung, name the canonical paper if any; flag empty rungs as candidates"
+8. **Janusian Thinking** (F8): `deep_thinker` synthesis-vs-compromise audit (see F8 checkpoint)
+
+### Phase 4: Evaluate (15 min + final `deep_thinker` adversarial round)
 Apply the two-sentence test (from the brainstorm skill):
 > "**[Domain] currently struggles with [problem] because [reason].** We [approach] by [mechanism], which works because [insight]."
 
-Any idea that survives all four phases and passes the two-sentence test is worth pursuing.
+Then run a final `deep_thinker` adversarial pass: "Here are my surviving ideas. Be a hostile NeurIPS reviewer. Which would you reject and why? Which would you champion?" Any idea that survives the test AND the reviewer round is worth pursuing.
+
+**Total `deep_thinker` calls in a full session**: typically 10–15. If you ran fewer than 8, you skipped checkpoints.
 
 ---
 
@@ -351,16 +385,21 @@ Any idea that survives all four phases and passes the two-sentence test is worth
 
 When a researcher asks for help with creative thinking or novel ideation:
 
+0. **Pre-session landscape scan**: invoke `mcp__chatgpt__deep_researcher` if no recent survey exists for the area. Save the report to `literature/`.
 1. **Assess the block**: What kind of thinking are they stuck in? (See Common Creative Blocks table)
 2. **Select 2-3 frameworks** based on the block type
-3. **Walk through each framework interactively**, asking the researcher to supply domain-specific content
-4. **Push for structural depth**: If an analogy or combination is surface-level, probe deeper
-5. **Maintain a running list** of all generated ideas, even unusual ones
+3. **Walk through each framework interactively**. **At every framework's `deep_thinker` checkpoint, actually call `mcp__chatgpt__deep_thinker`.** These are not decoration. Distant analogies and structural mappings cannot be self-validated reliably; external reasoning is the corrective force.
+4. **Push for structural depth**: If `deep_thinker` says an analogy is surface-level, probe deeper — don't accept your first idea
+5. **Maintain a running list** of all generated ideas, even unusual ones. Save important `deep_thinker` exchanges to `literature/_deep_thinker_<topic>_<date>.md`
 6. **Apply the two-sentence test** to candidates that survive exploration
-7. **Hand off to the brainstorm skill** for systematic evaluation (diverge → converge → refine)
+7. **Final adversarial `deep_thinker` round** before declaring winners — at least 3 turns of pushback
+8. **Hand off to the brainstorm skill** for systematic evaluation (diverge → converge → refine)
+
+**Sounding-board call budget**: 8–15 `deep_thinker` calls per deep creative session, 0–1 `deep_researcher` (Phase 0 only).
 
 **Key Principles**:
+- **Call `deep_thinker` aggressively** — creative thinking without external pushback is self-confirming
 - Generative mode first, evaluative mode second — do not filter prematurely
-- Distant analogies are more valuable than nearby ones, but require more validation
-- The researcher's domain expertise is essential — the agent provides the cognitive scaffolding, not the domain knowledge
+- Distant analogies are more valuable than nearby ones, but require more validation (this is exactly where `deep_thinker` is non-negotiable)
+- The researcher's domain expertise is essential — the agent provides the cognitive scaffolding, `deep_thinker` provides external validation, the researcher provides domain truth
 - Encourage the researcher to sit with contradictions rather than resolve them quickly

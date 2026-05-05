@@ -1,10 +1,10 @@
 ---
 name: autoresearch
 description: Orchestrates end-to-end autonomous AI research projects using a two-loop architecture. The inner loop runs rapid experiment iterations with clear optimization targets. The outer loop synthesizes results, identifies patterns, and steers research direction. Routes to domain-specific skills for execution, supports continuous agent operation via Claude Code /loop and OpenClaw heartbeat, and produces research presentations and papers. Use when starting a research project, running autonomous experiments, or managing a multi-hypothesis research effort.
-version: 1.0.0
+version: 1.2.0
 author: Orchestra Research
 license: MIT
-tags: [Autonomous Research, Two-Loop Architecture, Experiment Orchestration, Research Synthesis, Project Management]
+tags: [Autonomous Research, Two-Loop Architecture, Experiment Orchestration, Research Synthesis, Project Management, Deep Thinker, Deep Researcher, Bring-Up, Parallel Sub-Agents]
 ---
 
 # Autoresearch
@@ -41,9 +41,12 @@ Create this structure at the project root:
 ├── findings.md               # Evolving narrative synthesis
 ├── literature/               # Papers, survey notes
 ├── src/                      # Reusable code (utils, plotting, shared modules)
+│   └── bringup/              # Working invocation scripts + env recipes per component (from Bring-Up)
 ├── data/                     # Raw result data (CSVs, JSONs, checkpoints)
 ├── experiments/              # Per-hypothesis work
-│   └── {hypothesis-slug}/
+│   ├── _bringup/             # Bring-Up runs: reproducing existing components/baselines
+│   │   └── {component}-{n}/  # One folder per Bring-Up attempt
+│   └── {hypothesis-slug}/    # Novel experiments (Inner Loop)
 │       ├── protocol.md       # What, why, and prediction
 │       ├── code/             # Experiment-specific code
 │       ├── results/          # Raw outputs, metrics, logs
@@ -64,8 +67,15 @@ This is the core engine. Everything else supports it.
 ```
 BOOTSTRAP (once, lightweight)
   Scope question → search literature → form initial hypotheses
+  (parallelize deep_thinker / deep_researcher via sub-agents)
 
-INNER LOOP (fast, autonomous, repeating)
+BRING-UP (mandatory before any novel work)
+  For each pipeline component / baseline:
+    pick an existing implementation → reproduce its published numbers →
+    run on a slice of your own target → save env recipe + bringup_baseline
+  Goal: prove the foundation works before innovating on top
+
+INNER LOOP (fast, autonomous, repeating — only after Bring-Up)
   Pick hypothesis → experiment → measure → record → learn → next
   Goal: run constrained experiments with clear measurable outcomes
 
@@ -86,9 +96,9 @@ There is no rigid boundary between the two loops — you decide when enough inne
 
 The two-loop structure is a rhythm, not a railroad. At any point during research you can and should:
 
-- **Return to literature** when results surprise you, assumptions break, or you need context for a new direction — always save what you find to `literature/`
-- **Brainstorm new ideas** using `21-research-ideation/` skills when you're stuck or when results open unexpected questions
-- **Pivot the question entirely** if experiments reveal the original question was wrong or less interesting than what you found
+- **Return to literature** when results surprise you, assumptions break, or you need context for a new direction — always save what you find to `literature/`. For focused returns (≤10 papers, "what does the literature say about X?"), use `mcp__chatgpt__deep_thinker`. For full re-surveys after a major pivot, use `mcp__chatgpt__deep_researcher`.
+- **Brainstorm new ideas** using `21-research-ideation/` skills when you're stuck or when results open unexpected questions — these skills lean heavily on `deep_thinker` as a sparring partner
+- **Pivot the question entirely** if experiments reveal the original question was wrong or less interesting than what you found — before pivoting, hand the situation to `deep_thinker` ("Here's what I found, here's my proposed pivot, here's the original question — argue for keeping the original, then for pivoting, then give me your verdict")
 
 This is normal. Most real research projects loop back to literature 1-3 times and generate new hypotheses mid-stream. Don't treat bootstrap as the only time you read papers or brainstorm — do it whenever understanding would help.
 
@@ -96,23 +106,36 @@ This is normal. Most real research projects loop back to literature 1-3 times an
 
 Before entering the loops, understand the landscape. Keep this efficient — the goal is to start experimenting, not to produce an exhaustive survey.
 
-1. **Search literature** for the research question. Use multiple sources — never stop at one:
+1. **Search literature** for the research question. Use the right tool for the right depth — never stop at one source:
+
+   **Primary reasoning + search tools (USE THESE AGGRESSIVELY)**
+   - **`mcp__chatgpt__deep_researcher`** (≈1–2 hr) — for **wide landscape surveys** (50–500 papers). Call this ONCE at bootstrap to map the entire field, then again only on major direction shifts (PIVOT, BROADEN). Brief it densely: state the research question, the specific subfields to cover, what kind of synthesis you want (taxonomy? timeline? open problems?). It returns structured findings with citations.
+   - **`mcp__chatgpt__deep_thinker`** (≈5–10 min) — for **focused reasoning + ≤10-paper lookups**. Use it MANY times throughout bootstrap and beyond: "what are the 5 strongest counter-arguments to hypothesis X?", "find me 3 recent papers that compare method A vs B on benchmark C", "is this experimental design sound — what did I miss?". Multi-turn conversations are encouraged. Treat it as a senior collaborator, not a search box.
+
+   **Targeted retrieval tools** (use after deep_thinker/deep_researcher narrows the space)
    - **Exa MCP** (`web_search_exa`) if available — best for broad discovery and finding relevant papers quickly
    - **Semantic Scholar** (`pip install semanticscholar`) — best for ML/AI papers, citation graphs, and specific paper lookup. See `20-ml-paper-writing` skill's `references/citation-workflow.md` for complete API code examples
    - **arXiv** (`pip install arxiv`) — best for recent preprints and open-access papers
    - **CrossRef** — best for DOI lookup and BibTeX retrieval
-   - Keep searching until you have good coverage. If one source comes up empty, try another with different keywords
 
-   **Save everything to `literature/`**: For every paper you find, save a summary to `literature/` — title, authors, year, key findings, relevance to your question, and the URL/DOI. Create one file per paper and a running `literature/survey.md` with all summaries. This is your reference library — you and future sessions will need it throughout the project.
+   **Recommended bootstrap pattern**: (a) one or more `deep_researcher` calls for the landscape → (b) several `deep_thinker` calls to interrogate gaps and stress-test framings → (c) targeted Semantic Scholar / arXiv pulls for the specific papers deep_researcher / deep_thinker named.
+
+   **PARALLELIZE with sub-agents** (this is the high-leverage move). `deep_researcher` takes 1–2 hr per call and `deep_thinker` takes 5–10 min — running them sequentially wastes wall-clock time. Use the `Agent` tool to spawn **multiple sub-agents in a single message**, each invoking one `deep_researcher` or `deep_thinker` call. They run concurrently.
+   - **Wide survey via parallel deep_researcher**: first ask `deep_thinker` itself how to slice the area — "Decompose {research area / question} into 3–6 minimally overlapping sub-topics suitable for parallel literature surveys. For each, give a 1-line scope description and 3–5 seed search terms." Validate the decomposition, then spawn one sub-agent per sub-topic, each calling `deep_researcher` with that scope. Same wall-clock as one call, but 3–6× the coverage. Merge the reports into `literature/_deep_research_<area>_<date>.md`.
+   - **Parallel deep_thinker stress tests**: when stress-testing K hypotheses or K candidate framings, spawn K sub-agents in one message, each handing one item to `deep_thinker` for an adversarial round. You get K critiques in ~10 min instead of K×10 min.
+   - **Anti-pattern**: serial calls. If you find yourself making 5 sequential `deep_thinker` calls, you should have spawned 5 sub-agents instead.
+
+   **Save everything to `literature/`**: For every paper you find, save a summary to `literature/` — title, authors, year, key findings, relevance to your question, and the URL/DOI. Create one file per paper and a running `literature/survey.md` with all summaries. Also save the raw `deep_researcher` report to `literature/_deep_research_<topic>_<date>.md` and important `deep_thinker` exchanges to `literature/_deep_thinker_<topic>_<date>.md` — these are your reasoning trail.
 
 2. **Identify gaps** from the literature
    - What's been tried? What hasn't? Where do existing methods break?
    - What do Discussion sections flag as future work?
 
-3. **Form initial hypotheses** — invoke `21-research-ideation/` skills
-   - `brainstorming-research-ideas` for structured diverge-converge workflow
-   - `creative-thinking-for-research` for deeper cognitive frameworks
+3. **Form initial hypotheses** — invoke `21-research-ideation/` skills, which themselves rely heavily on `deep_thinker` as a sounding board
+   - `brainstorming-research-ideas` for structured diverge-converge workflow (calls deep_thinker many times — let it)
+   - `creative-thinking-for-research` for deeper cognitive frameworks (calls deep_thinker for analogy/structure validation)
    - Each hypothesis must be testable with a clear prediction
+   - **Before locking hypotheses**: run them past `deep_thinker` for a final stress test ("Here are my 3 hypotheses for {project}. Which is weakest? What experiment would falsify each in 24h?")
 
 4. **Define the evaluation**
    - Set the proxy metric and baseline before running experiments
@@ -121,7 +144,77 @@ Before entering the loops, understand the landscape. Keep this efficient — the
 
 5. **Record** in research-state.yaml, log the bootstrap in research-log.md
 
+## Bring-Up: Reproduce Existing Components Before Innovating
+
+**Do NOT enter the Inner Loop straight from Bootstrap.** Insert a Bring-Up phase first. The first experiments must NOT be ambitious or novel — they must establish that **existing tools work end-to-end in this environment** with documented baselines. Innovation comes after, never before.
+
+### Why Bring-Up is mandatory
+
+Most failed projects fail not because the novel idea was wrong, but because nobody verified the boring foundation. You'll lose weeks debugging "is my finding real, or did my pipeline have a bug from day one?" Bring-Up removes that ambiguity.
+
+### What to do in Bring-Up
+
+For **each component** of your eventual pipeline (or, if you're not doing pipeline research, for each baseline method you'll compare against), do the following — typically 5–20 small experiments before any novel work begins.
+
+**For pipeline-style research** (any project where the contribution is composed of multiple staged components, each potentially a separate model or method), Bring-Up is heavier and most of your time goes here. Use `deep_thinker` to enumerate the stages first ("Decompose this pipeline into its minimal independently-verifiable stages — for each, give the input/output spec and a 1-line success criterion"), then for each pipeline stage:
+
+```
+Bring-Up Checklist (per component)
+- [ ] Identify 2–3 candidate existing implementations (SOTA + well-supported alternatives)
+- [ ] For each candidate: parallel deep_thinker calls to compare maintenance status,
+      license, dependency conflicts, hardware fit, and known gotchas
+- [ ] Pick one, install, run on its OWN published dataset/benchmark
+- [ ] Reproduce published numbers within ~5–10% (or document the gap)
+- [ ] Run on a small slice of YOUR data (or YOUR target) and record what works/breaks
+- [ ] Save a working invocation script + the env recipe to src/bringup/{component}/
+- [ ] Log the baseline metric in research-state.yaml under `bringup_baselines:`
+```
+
+**For non-pipeline research**: at minimum, reproduce the strongest baseline you'll later compare against. If you can't reproduce it, you can't claim improvement on it.
+
+### Parallelize the Bring-Up
+
+Each component's Bring-Up is independent — run them concurrently. Spawn one sub-agent per component (Agent tool) so K components are brought up in roughly the time of one. The orchestrator (you) stays free to handle blockers as they surface.
+
+### Use deep_thinker aggressively during Bring-Up
+
+When choosing among candidate implementations, hand the shortlist to `deep_thinker`:
+> "For {pipeline stage X} I'm choosing between {A, B, C}. Compare on: maintenance recency, license, hardware fit (single A100 80GB / Linux Docker / CUDA 12.x), known training failure modes, ease of adapting to {our data}. Recommend one and explain failure modes of the other two."
+
+When a Bring-Up fails (numbers don't reproduce, install breaks, etc.):
+> "I tried to reproduce {paper Y} using {repo Z}. I got {numbers / error}. The paper claimed {numbers}. What's the most likely cause? Suggest the next 3 things to try, ranked."
+
+### Bring-Up exit criteria
+
+Bring-Up is done when all of these are true:
+- [ ] Each component runs end-to-end on at least its own published benchmark
+- [ ] Each component runs on a small representative slice of YOUR target data
+- [ ] You have a documented working environment recipe (Docker image, conda env, CUDA version, exact commit hashes)
+- [ ] `bringup_baselines:` in research-state.yaml lists per-component metrics with sources
+- [ ] You can articulate, for each component, what it currently does NOT support (this becomes the innovation surface)
+- [ ] If pipeline: you can connect at least 2 adjacent components with a simple stitch (even if quality is poor)
+
+Only THEN enter the Inner Loop with novel hypotheses.
+
+### Bring-Up vs Inner Loop labeling
+
+Commit Bring-Up experiments to `experiments/_bringup/{component}-{n}/` (note the leading underscore). Tag git commits as `bringup({component}): {what was verified}`. This keeps Bring-Up clearly separated from the novel-experiment trajectory plot — Bring-Up should not appear on the optimization curve, since it's about establishing the floor, not pushing it up.
+
+### Why this isn't "wasted time"
+
+Bring-Up artifacts directly feed the paper:
+- Reproduced baselines → "Baselines" section, no extra work
+- Per-component performance numbers → ablation tables
+- Known failure modes → motivation for your novel contribution
+- Working environment recipe → reproducibility appendix
+
+A good Bring-Up phase typically yields **half of the eventual paper's empirical content for free**.
+
+---
+
 ## The Inner Loop
+
+**Prerequisite**: Bring-Up phase must be complete (see above). The Inner Loop assumes existing components work end-to-end and you have documented per-component baselines. If anything is unverified, finish Bring-Up first — do not begin novel experiments on top of an unproven foundation.
 
 Rapid iteration with clear measurable outcomes. Two flavors:
 
@@ -155,6 +248,8 @@ When you need domain-specific execution, search the skills library:
 
 | Research Activity | Look In |
 |---|---|
+| **Sounding board / quick reasoning + ≤10-paper lookup** | `mcp__chatgpt__deep_thinker` — call aggressively at every nontrivial decision |
+| **Wide literature survey (50–500 papers)** | `mcp__chatgpt__deep_researcher` — call at bootstrap, PIVOT, BROADEN |
 | Data preparation | `05-data-processing/` |
 | Model training / fine-tuning | `01-model-architecture/`, `03-fine-tuning/`, `06-post-training/` |
 | Distributed training | `08-distributed-training/` |
@@ -164,6 +259,7 @@ When you need domain-specific execution, search the skills library:
 | Interpretability analysis | `04-mechanistic-interpretability/` |
 | Experiment tracking (W&B, MLflow) | `13-mlops/` |
 | Cloud compute | `09-infrastructure/` |
+| Remote Docker-only lab cluster (orchestrator + workers, multi-server) | `09-infrastructure/orchestrating-remote-docker-research/` |
 
 Read the relevant SKILL.md before starting — it has workflows, common issues, and code examples. See [references/skill-routing.md](references/skill-routing.md) for a complete guide.
 
@@ -194,8 +290,8 @@ Step back from individual experiments. Synthesize.
 2. Cluster by type: what kinds of changes worked? Which didn't?
 3. Ask WHY — identify the mechanism behind successes and failures
 4. Update findings.md with current understanding
-5. Search literature if results were surprising or assumptions need revisiting
-6. Generate new hypotheses if warranted (invoke 21-research-ideation/ skills)
+5. Search literature if results were surprising or assumptions need revisiting — `deep_thinker` for focused returns ("did anyone observe this {phenomenon} before?"), `deep_researcher` only if the surprise warrants a full re-survey
+6. Generate new hypotheses if warranted (invoke 21-research-ideation/ skills, which themselves call `deep_thinker` aggressively). Before locking each new hypothesis, hand it to `deep_thinker` for a counter-argument round.
 7. Decide direction (see criteria below)
 8. Update research-state.yaml with new direction
 9. Log the reflection in research-log.md
@@ -319,6 +415,8 @@ Commit at natural research milestones:
 | When | Message Pattern |
 |---|---|
 | Workspace initialized | `research(init): {project} — {question}` |
+| Bring-Up: component verified | `bringup({component}): {what was verified}` |
+| Bring-Up phase complete | `bringup(done): {N components verified}` |
 | Experiment protocol locked | `research(protocol): {hypothesis}` |
 | Significant results | `research(results): {hypothesis} — {outcome}` |
 | Outer loop direction change | `research(reflect): {direction} — {reason}` |
@@ -343,6 +441,9 @@ Proceed autonomously through the writing process. If the ml-paper-writing skill 
 
 Principles to enforce continuously — not tied to any specific phase:
 
+- **Use sounding boards constantly**: `mcp__chatgpt__deep_thinker` is your senior collaborator. Call it at every nontrivial decision — protocol design, anomaly diagnosis, framing checks, hypothesis stress tests, "is this experiment worth running?". A 5–10 minute call costs less than a wasted 24h experiment. `mcp__chatgpt__deep_researcher` is the heavyweight surveyor — use it for landscape mapping at bootstrap and major pivots, not for every iteration.
+- **Parallelize sounding boards via sub-agents**: when you'd run K `deep_thinker` or `deep_researcher` calls, spawn K sub-agents in one Agent-tool message instead of making K serial calls. Each call is 5–10 min (deep_thinker) or 1–2 hr (deep_researcher); sequential serialization is the most common autoresearch mistake.
+- **Reproduce before innovating**: Bring-Up is mandatory. Never run a novel experiment until existing components are verified end-to-end with documented per-component baselines. Reproduced baselines and component-level numbers are paper material, not wasted time.
 - **Lock before you run**: Commit your experiment protocol to git before executing. This proves your plan existed before you saw results. Never combine protocol + results in one commit.
 - **Confirmatory vs exploratory**: Results matching your locked protocol are confirmatory. Everything else is exploratory — interesting but requiring more skepticism.
 - **Negative results are progress**: A refuted hypothesis tells you something. Log what it rules out and what it suggests. Don't treat it as failure.
@@ -380,11 +481,19 @@ Principles to enforce continuously — not tied to any specific phase:
 
 ## Common Issues
 
+**Inner loop results don't make sense (numbers wildly off, baselines don't match expectations)**
+This usually means Bring-Up was incomplete — your foundation has an undetected bug. Stop the Inner Loop. Go back to `experiments/_bringup/` and re-verify the relevant component end-to-end on its published benchmark. If it still doesn't reproduce, hand the discrepancy to `deep_thinker`: "Repo X claims metric Y on benchmark Z, I'm getting W. Here's my exact invocation. What's the most likely cause?"
+
 **Inner loop stalls (no metric improvement)**
 Run an outer loop. Is the metric the right one? Is the search space exhausted? Consider broadening or pivoting. Search literature for new approaches.
 
 **Stuck and not making progress**
-Don't keep trying random changes. Step back: search literature for related work, invoke `21-research-ideation/` brainstorming skills, or run an outer loop reflection. Being stuck means you need new information or a new perspective, not more experiments.
+Don't keep trying random changes. Step back and use your **sounding boards**:
+- `mcp__chatgpt__deep_thinker` for an immediate second opinion ("Here's where I'm stuck on {project}, here's what I've tried, what am I missing?"). Ask it to enumerate alternative framings, not just answers.
+- `mcp__chatgpt__deep_researcher` if the stuck-ness suggests a literature gap (e.g., "I assumed nobody has done X — confirm or refute with a wide survey").
+- Invoke `21-research-ideation/` brainstorming skills (which themselves call deep_thinker many times)
+- Run an outer loop reflection
+Being stuck means you need new information or a new perspective, not more experiments.
 
 **Results contradict baseline expectations**
 Investigate, don't ignore. Return to literature — your protocol might have an error, the published baseline may be wrong, or conditions differ. Update findings.md with what you learn.
@@ -393,7 +502,7 @@ Investigate, don't ignore. Return to literature — your protocol might have an 
 Ensure research-state.yaml and findings.md are updated after every action. These files are your memory across sessions.
 
 **Can't find relevant papers**
-Try multiple approaches in order: Exa MCP for broad search, Semantic Scholar for specific ML/AI paper lookup (`pip install semanticscholar`), arXiv for preprints (`pip install arxiv`). Check `20-ml-paper-writing` skill's `references/citation-workflow.md` for complete API code. Note: Google Scholar has no official API — use Semantic Scholar instead for programmatic search.
+Escalate by depth: (1) `mcp__chatgpt__deep_thinker` first — describe the gap and ask for 5–10 named papers with reasoning ("nothing comes up for X — is it called something else? are there adjacent literatures?"). (2) If still empty, `mcp__chatgpt__deep_researcher` for a full sweep including grey literature. (3) Then targeted retrieval: Exa MCP for broad search, Semantic Scholar for specific ML/AI paper lookup (`pip install semanticscholar`), arXiv for preprints (`pip install arxiv`). Check `20-ml-paper-writing` skill's `references/citation-workflow.md` for complete API code. Note: Google Scholar has no official API — use Semantic Scholar instead for programmatic search.
 
 **No GPU available**
 Use CPU and scale experiments down. Many research tasks (analysis, interpretability, small model training) run fine on CPU. Adjust experiment design to fit available compute rather than blocking.

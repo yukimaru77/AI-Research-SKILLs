@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**AI Research Skills Library** - A comprehensive open-source library of 90 AI research skills enabling AI agents to autonomously conduct AI research — from idea to paper. Each skill provides expert-level guidance (200-500 lines) with real code examples, troubleshooting guides, and production-ready workflows.
+**AI Research Skills Library** - A comprehensive open-source library of 134 AI research skills enabling AI agents to autonomously conduct AI research — from idea to paper. Each skill provides expert-level guidance (200-500 lines) with real code examples, troubleshooting guides, and production-ready workflows.
 
 **Mission**: Enable AI agents to autonomously conduct AI research from hypothesis to experimental verification, covering the full lifecycle: literature survey, ideation, dataset preparation, training pipelines, model deployment, evaluation, and paper writing.
 
 ## Repository Architecture
 
-### Directory Structure (90 Skills Across 23 Categories)
+### Directory Structure (134 Skills Across 29 Categories)
 
 Skills are organized into numbered categories representing the AI research lifecycle:
 
@@ -37,6 +37,12 @@ Skills are organized into numbered categories representing the AI research lifec
 - `20-ml-paper-writing/` - Paper writing (1 skill: ML Paper Writing with LaTeX templates for NeurIPS, ICML, ICLR, ACL, AAAI, COLM)
 - `21-research-ideation/` - Ideation (2 skills: Research Brainstorming, Creative Thinking)
 - `22-agent-native-research-artifact/` - Agent-Native Research Artifact tooling (3 skills: ARA Compiler, ARA Research Manager, ARA Rigor Reviewer — ingestion, post-task provenance recording, and Seal Level 2 epistemic review)
+- `23-3d-reconstruction/` - Lab-equipment 3D reconstruction pipeline (7 skills: Preprocessing Videos, SfM Camera Poses, Pose-Free Geometry, Gaussian Splats, GS Surfaces, Reflection-Aware Splats, NeRF Fallbacks)
+- `24-3d-segmentation-articulation/` - Gaussian-level segmentation and articulation estimation (6 skills: Per-Gaussian SAGA, Ditto Prior, ScrewSplat, gsplat Adapter, LUDVIG Mask Uplifting, Multi-State Diff Open3D)
+- `25-affordance-vlm/` - VLM-driven affordance and kinematic hypothesis generation (5 skills: Multi-View Cards Renderer, Qwen3-VL Affordance Prompter, Kinematic JSON Constrained Decode, Articulation Priors Retrieval, VLM Physics Validation Loop)
+- `26-3d-rendering-vr/` - Splat asset deployment for VR platforms (6 skills: Compiling Splat Assets, SuperSplat WebXR, Quest Spatial Splats, Unity Splats, Unreal XScene Splats, SuperSplat Scene Editing)
+- `27-physics-simulation/` - Physics engine authoring, simulation, and validation (7 skills: Genesis Prototyping, URDF/MJCF/USD Authoring, Collision Meshes, MuJoCo/MJX, Isaac Sim/Lab, SAPIEN, SysID RL Hooks)
+- `28-digital-twin-workflows/` - End-to-end META orchestration skills for lab-equipment digital twins (5 skills: Multi-State Capture Protocol, Versioning with ARA, Lab Equipment Twinning, Validating Digital Twins, Simulating Experiment Runs)
 
 ### Skill File Structure
 
@@ -154,10 +160,10 @@ python -c "import yaml; yaml.safe_load(open('skill-name/SKILL.md').read().split(
 
 ## Key Files
 
-- **README.md** - Project overview, all 90 skills listed with descriptions and stats
+- **README.md** - Project overview, all 134 skills listed with descriptions and stats
 - **CONTRIBUTING.md** - Complete contribution guidelines and quality standards
 - **SKILL_TEMPLATE.md** - Copy-paste scaffold for new skills
-- **ROADMAP.md** - Development roadmap (90 skills achieved)
+- **ROADMAP.md** - Development roadmap (134 skills achieved, including lab-equipment digital twin pipeline v2.0.0)
 - **anthropic_official_docs/** - Anthropic's official best practices for skills
 
 ## Git Workflow
@@ -324,6 +330,23 @@ SKILL.md should link directly to reference files (one level deep):
 **API Reference**: See [references/api.md](references/api.md)
 **Troubleshooting**: See [references/issues.md](references/issues.md)
 ```
+
+## Lab-Equipment Digital Twin Pipeline (Categories 23–28)
+
+Categories 23–28 form a cohesive video-to-VR/physics pipeline for lab-equipment digital twins (primary target: scanning electron microscopes and optical benches). The intended execution order is:
+
+1. **Cat 23** (`23-3d-reconstruction/`) — preprocess video → recover camera poses → train Gaussian splats → extract surfaces
+2. **Cat 24** (`24-3d-segmentation-articulation/`) — segment Gaussians per-part → run multi-state diff to detect moving parts and classify joints
+3. **Cat 25** (`25-affordance-vlm/`) — render multi-view cards → prompt Qwen3-VL for affordances → constrain-decode kinematic JSON → validate with physics loop
+4. **Cat 26** (`26-3d-rendering-vr/`) — compile splat assets → deploy to Quest 3 / WebXR / Unity / Unreal for VR rendering
+5. **Cat 27** (`27-physics-simulation/`) — author URDF/MJCF/USD → condition collision meshes → simulate and validate in MuJoCo/MJX and Isaac Sim/Lab → calibrate SysID
+6. **Cat 28** (`28-digital-twin-workflows/`) — META skills that orchestrate the full pipeline, version the twin with ARA, and run simulated experiment campaigns
+
+**License awareness**: Many tools in cats 23–27 carry non-commercial or research-only licenses (original Inria 3DGS, Instant-NGP, LUDVIG, 2DGS/GOF/SuGaR, DUSt3R/MASt3R, GaussianShader). Each SKILL.md includes a CRITICAL LICENSE WARNING block where relevant. Always check the license notes in SKILL.md before shipping any outputs commercially.
+
+**Hardware target**: All skills in cats 23–28 target Linux Docker with NVIDIA A100 80GB (CUDA 12.x / PyTorch 2.10+) unless otherwise noted.
+
+**Skill versioning**: All 36 skills in cats 23–28 are version 2.0.0 (May 2026), Deep_thinker-verified.
 
 ## Philosophy
 

@@ -1,0 +1,94 @@
+# lab-environment.yaml — drop into the `environment:` block of research-state.yaml
+# at workspace bootstrap, and update as the cluster evolves.
+#
+# autoresearch reads this on every /loop tick to know where to dispatch
+# experiments, where to store data, and what trade-offs each server presents.
+
+environment:
+
+  # Cluster topology --------------------------------------------------------
+  servers:
+
+    - name: saitou
+      host: saitou                              # ssh alias
+      role: control                             # this is where the orchestrator container runs
+      gpus: 8
+      gpu_model: A100-40GB
+      total_vram_gib: 320                       # 8 * 40
+      workspace_host_path: /h200-home/nonaka/research
+      preferred_for:
+        - parallel-sweeps
+        - bring-up-reproductions
+        - distributed-training
+        - medium-models
+        - any-experiment-using-DDP-FSDP-DeepSpeed-Megatron-vLLM-TP
+      caveats: |
+        Total 320 GB only realized via libraries with mature multi-GPU
+        support. A vanilla model.cuda() sees only 40 GB on the chosen
+        device. If the library does NOT have well-tested multi-GPU
+        support, prefer the H200 server instead.
+
+    - name: saitou-h200
+      host: saitou-h200                         # ssh alias
+      role: worker
+      gpus: 1
+      gpu_model: H200-NVL-144GB
+      total_vram_gib: 144
+      workspace_host_path: /home/nonaka/research
+      preferred_for:
+        - huge-single-model
+        - long-context
+        - large-batch
+        - vlm-72b-and-up
+        - any-library-without-mature-multi-gpu-support
+      caveats: |
+        Single GPU; no parallel sweeps. But: vanilla model.cuda() gets
+        the full ~144 GB. No NCCL, no rank coordination, no FSDP
+        boilerplate. Pick this when simplicity matters more than total
+        throughput.
+
+  # Shared storage ----------------------------------------------------------
+  storage:
+    shared_workspace_nfs:
+      saitou_path:       /h200-home/nonaka/research
+      saitou_h200_path:  /home/nonaka/research
+      total_tib: 207
+      notes: "Same NFS visible from both servers; primary location for code, state.yaml, results."
+    saitou_only:
+      data:    {host_path: /data/nonaka,  capacity_tib: 197, free_tib: 58}
+      data2:   {host_path: /data2/nonaka, capacity_tib: 182, free_tib: 182, notes: "Fresh, biggest free pool"}
+      raid:    {host_path: /raid/nonaka,  capacity_tib: 14,  free_tib: 12,  notes: "Local NVMe; use as scratch for hot training data"}
+    saitou_h200_only:
+      data1:   {host_path: /data1/nonaka, capacity_tib: 14,  free_tib: 14,  notes: "Local NVMe; scratch only"}
+      data2:   {host_path: /data2/nonaka, capacity_tib: 14,  free_tib: 14,  notes: "Local NVMe; scratch only"}
+
+  # Conventions enforced by lab_*.sh helpers --------------------------------
+  conventions:
+    in_container_workspace: /workspace
+    worker_labels:
+      - autoresearch.gpu={device_index}
+      - autoresearch.server={server_name}
+    bringup_dir: experiments/_bringup/{component}/
+    bringup_baseline_yaml_key: bringup_baselines
+
+  # Resource policy ---------------------------------------------------------
+  policy:
+    max_concurrent_workers:
+      saitou: 4              # leave 4 GPUs free for ad-hoc / Bring-Up
+      saitou-h200: 1
+    gpu_busy_free_mib_threshold: 2000
+    auto_pivot_to_h200_when:
+      - "candidate batch size requires >40 GB and library lacks tensor parallel"
+      - "model architecture has no FSDP/DeepSpeed adapter"
+    auto_pivot_to_saitou_when:
+      - "training requires >144 GB total VRAM"
+      - "running ≥ 4 parallel hyperparameter configs"
+
+  # Network -----------------------------------------------------------------
+  network:
+    outbound_from_container:
+      huggingface: ok
+      anthropic_api: ok
+      arxiv: ok
+      github: ok
+    proxies_required: false

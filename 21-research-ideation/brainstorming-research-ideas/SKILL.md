@@ -1,10 +1,10 @@
 ---
 name: brainstorming-research-ideas
 description: Guides researchers through structured ideation frameworks to discover high-impact research directions. Use when exploring new problem spaces, pivoting between projects, or seeking novel angles on existing work.
-version: 1.0.0
+version: 1.1.1
 author: Orchestra Research
 license: MIT
-tags: [Research Ideation, Brainstorming, Problem Discovery, Creative Thinking, Research Strategy]
+tags: [Research Ideation, Brainstorming, Problem Discovery, Creative Thinking, Research Strategy, Deep Thinker, Deep Researcher, Parallel Sub-Agents]
 dependencies: []
 ---
 
@@ -25,6 +25,27 @@ Structured frameworks for discovering the next research idea. This skill provide
 - You already have a well-defined research question and need execution guidance
 - You need help with experimental design or methodology (use domain-specific skills)
 - You want a literature review (use `scientific-skills:literature-review`)
+
+---
+
+## Sounding Boards: `deep_thinker` and `deep_researcher` (USE THEM AGGRESSIVELY)
+
+Ideation produces *much* better results when you treat external reasoning tools as collaborators, not as fallbacks. **Every framework below has at least one moment where you should hand off to `deep_thinker` for a stress test or expansion.** Do not skip these calls — a 5–10 minute consultation costs less than a week of pursuing a half-baked idea.
+
+| Tool | Latency | Use For |
+|---|---|---|
+| **`mcp__chatgpt__deep_thinker`** | ~5–10 min | Stress-testing a hypothesis, finding 3–5 closely related papers, surfacing counter-arguments, pressure-testing a framing, getting a senior-collaborator second opinion. Multi-turn conversations are encouraged — refine, push back, ask for examples. Call it MANY times per session. |
+| **`mcp__chatgpt__deep_researcher`** | ~1–2 hr | Wide landscape surveys (50–500 papers), full taxonomy mapping, finding overlooked precedents. Call at the *start* of a major ideation session, and again only on major direction shifts. NOT for every iteration. |
+
+**Briefing pattern that works**:
+- Dump the full context (one paragraph: domain, what you've considered, what's at stake)
+- State the SHAPE of answer ("name 5 specific papers", "give 3 counter-arguments and rate severity", "compare X vs Y on these criteria")
+- For deep_thinker, follow up: "Push harder on point 3", "What did you miss?"
+- Save important exchanges to `literature/_deep_thinker_<topic>_<date>.md`
+
+**Default rule**: when in doubt, call `deep_thinker`. The cost of NOT calling is silent — bad ideas slip through.
+
+**PARALLELIZE via sub-agents**. When stress-testing K candidate hypotheses or framings, do NOT call `deep_thinker` K times in series. Spawn K sub-agents (Agent tool) in a single message, each handing one item to `deep_thinker` for an adversarial round. Same wall-clock, K× the critique. Same applies to `deep_researcher`: split a wide survey into 3–6 sub-topics, spawn one sub-agent per sub-topic, each calling `deep_researcher` independently — you get K separate landscape reports in roughly the time of one. Serial execution of these tools is the most common autoresearch inefficiency.
 
 ---
 
@@ -56,6 +77,8 @@ Research ideas originate from two distinct modes. Knowing which mode you are in 
 - [ ] Is the problem I am solving actually unsolved (not just under-marketed)?
 - [ ] If solution-first, does the solution create new capability or just replicate existing ones?
 
+**`deep_thinker` checkpoint**: After step 5, send the framing to `deep_thinker`: "Here's my one-sentence idea: {X}. I'm classifying it as {problem-first | solution-first}. Stress test: who actually suffers from this? Has the problem been silently solved? If solution-first, name 3 genuine demand cases or tell me there are none." Iterate until the answer is sharp.
+
 ---
 
 ### 2. The Abstraction Ladder
@@ -74,6 +97,8 @@ Every research problem sits at a particular level of abstraction. Deliberately m
 3. Move DOWN: What is the most specific, constrained instance of this? What happens at the extreme?
 4. Move SIDEWAYS: Where else does this pattern appear in a different field?
 5. For each new level, ask: Is this a publishable contribution on its own?
+
+**`deep_thinker` checkpoint**: Hand it your one-sentence focus and ask: "Generate 3 'move up' generalizations, 3 'move down' instantiations, and 3 sideways analogies — for each, name a paper that already explored that level (if any) and rate freshness 1–5." This gives you a literature-grounded ladder in one call.
 
 **Example**:
 - **Current**: "Improving retrieval accuracy for RAG systems"
@@ -111,6 +136,8 @@ Breakthroughs often come from resolving tensions between widely accepted but see
 - [ ] Can I point to papers that optimize for each side independently?
 - [ ] Is my proposed reconciliation technically plausible, not just aspirational?
 
+**`deep_thinker` checkpoint**: "I claim there is a tension between {A} and {B}. (1) Is this tension real, or has someone already shown it's an artifact? Name papers. (2) What's the strongest known Pareto point? (3) Give me 3 mechanism-level ideas that might break the tradeoff, ranked by plausibility." If the tension is fake, you saved yourself a project.
+
 ---
 
 ### 4. Cross-Pollination (Analogy Transfer)
@@ -141,6 +168,8 @@ Borrowing structural ideas from other disciplines is one of the most generative 
 5. Generate testable predictions from the analogy
 6. Validate: Does the borrowed idea actually improve outcomes?
 
+**`deep_thinker` checkpoint** (do this between step 1 and step 2): Send your domain-agnostic description. Ask: "Name 5 fields outside CS that solve this same structural problem. For each, name the canonical mechanism, rate transferability 1–5, and flag any obvious failure modes when transferred to ML." This single call replaces hours of cold scanning.
+
 ---
 
 ### 5. The "What Changed?" Principle
@@ -164,6 +193,8 @@ Strong ideas often come from revisiting old problems under new conditions. Advan
 3. For each assumption, ask: Is this still true today?
 4. If any assumption has been invalidated → re-run the idea under new conditions
 5. Frame the contribution: "X was previously impractical because Y, but Z has changed"
+
+**`deep_thinker` checkpoint**: "Method {X} was abandoned around {year} because {reasons}. Today, what has changed materially: compute, data, tooling, theory, regulation? Has anyone already revived {X} under modern conditions? If yes, name them; if no, propose the cleanest 3-week pilot to test the revival." If a revival paper already exists, you avoid a duplicate; if not, you have a green light.
 
 ---
 
@@ -190,6 +221,8 @@ Understanding where a method breaks is often as valuable as showing where it wor
 - [ ] Am I probing genuine boundaries, not just confirming known limitations?
 - [ ] Can I explain WHY the method fails, not just THAT it fails?
 - [ ] Does my analysis suggest a constructive path forward?
+
+**`deep_thinker` checkpoint**: "I want to probe failure modes of {method X}. List 5 boundary conditions where it might break, ranked by (a) likelihood of failure and (b) novelty (have prior papers reported this failure?). For each, propose the minimal experiment that exposes it." Use this to prioritize which boundary to attack first.
 
 ---
 
@@ -287,22 +320,33 @@ A strong research idea should be defensible in two sentences to a smart non-expe
 
 ## Integrated Brainstorming Workflow
 
-Use this end-to-end workflow to go from blank page to ranked research ideas.
+Use this end-to-end workflow to go from blank page to ranked research ideas. **`deep_thinker` is invoked at every phase; `deep_researcher` is invoked once at Phase 0.**
+
+### Phase 0: Landscape (one-shot, before Diverge)
+
+**Goal**: Map what already exists so you don't reinvent.
+
+- Call `mcp__chatgpt__deep_researcher` with a dense brief: "Survey the landscape of {area X}. Cover: (1) major paradigms 2018–present, (2) recent breakthroughs (last 18mo), (3) known open problems explicitly flagged in Discussion sections, (4) under-explored corners. Return as a structured report with 30–60 cited papers." Save to `literature/_deep_research_<area>_<date>.md`.
+- Skip Phase 0 only if you've done it within the last month for the same area.
 
 ### Phase 1: Diverge (Generate Candidates)
 
 **Goal**: Produce 10-20 candidate ideas without filtering.
 
-1. **Scan for tensions** (Framework 3): List 5 trade-offs in your field
-2. **Check what changed** (Framework 5): List 3 recent shifts (compute, data, regulation)
-3. **Probe boundaries** (Framework 6): Pick 2 popular methods and find where they break
-4. **Cross-pollinate** (Framework 4): Pick 1 idea from an adjacent field
-5. **Compose/decompose** (Framework 9): Combine 2 existing techniques or split 1 apart
-6. **Climb the abstraction ladder** (Framework 2): For each candidate, generate up/down/sideways variants
+1. **Scan for tensions** (Framework 3): List 5 trade-offs in your field → `deep_thinker`: "Which are real vs artifact?"
+2. **Check what changed** (Framework 5): List 3 recent shifts (compute, data, regulation) → `deep_thinker`: "Which prior negative results are now worth revisiting?"
+3. **Probe boundaries** (Framework 6): Pick 2 popular methods and find where they break → `deep_thinker`: "Which boundary failure has the most leverage?"
+4. **Cross-pollinate** (Framework 4): Pick 1 idea from an adjacent field → `deep_thinker`: "Validate structural fidelity, not surface metaphor"
+5. **Compose/decompose** (Framework 9): Combine 2 existing techniques or split 1 apart → `deep_thinker`: "Has this combination been tried? If yes, what failed?"
+6. **Climb the abstraction ladder** (Framework 2): For each candidate, generate up/down/sideways variants → `deep_thinker` for each rung
+
+**Anti-pattern**: producing 20 ideas without ever consulting `deep_thinker` between them. Most will be naive duplicates of existing work; you'll discover this only after wasted effort.
 
 ### Phase 2: Converge (Filter and Rank)
 
 **Goal**: Narrow to 3-5 strongest ideas.
+
+**Run a `deep_thinker` adversarial round on the full candidate list**: "Here are my {N} candidate ideas: {list}. For each, give the strongest case AGAINST it (existing work, fundamental limit, weak motivation). Rank from most to least defensible." This catches duplicates and weak ideas in one shot. Apply the filters below only after this round.
 
 Apply these filters to each candidate:
 
@@ -324,6 +368,14 @@ Apply these filters to each candidate:
 4. List 3 concrete experiments that would validate the idea
 5. Anticipate the strongest objection and prepare a response
 6. Define a 2-week pilot that would provide signal on feasibility
+
+**Final `deep_thinker` round** (multi-turn, plan on 2–4 turns):
+- Turn 1: "Here's my pitch + experiments + objection-and-response. Where is this weakest?"
+- Turn 2: respond to its critique, refine
+- Turn 3: "Now imagine you're a NeurIPS reviewer reading this in 8 months. What's the desk-rejection risk?"
+- Turn 4: "What ONE experiment, if run first, would most de-risk this?"
+
+The output of this round becomes the bootstrap input to autoresearch.
 
 **Completion Checklist**:
 - [ ] Two-sentence pitch is clear and compelling
@@ -370,15 +422,20 @@ Not sure which framework to start with? Use this decision guide:
 
 When a researcher asks for help brainstorming research ideas:
 
+0. **Run Phase 0 landscape scan FIRST** with `mcp__chatgpt__deep_researcher` if no recent survey exists for this area. Save the report to `literature/`.
 1. **Identify their starting point**: Are they exploring a new area, stuck on a current project, or evaluating an existing idea?
 2. **Select appropriate frameworks**: Use the Framework Selection Guide to pick 2-3 relevant lenses
-3. **Walk through frameworks interactively**: Apply each framework step-by-step, asking the researcher for domain-specific inputs
+3. **Walk through frameworks interactively**: Apply each framework step-by-step. **At every framework's `deep_thinker` checkpoint, actually call `mcp__chatgpt__deep_thinker`** — do not skip these. They are not optional decoration; they are how this skill works.
 4. **Generate candidates**: Aim for 10-20 raw ideas across frameworks
-5. **Filter and rank**: Apply the Converge phase filters to narrow to top 3-5
-6. **Refine the winner**: Help articulate the two-sentence pitch and define concrete next steps
+5. **Filter and rank**: Run the Phase 2 adversarial `deep_thinker` round, then apply Converge filters to narrow to top 3-5
+6. **Refine the winner**: Help articulate the two-sentence pitch and run the multi-turn final `deep_thinker` round (Phase 3)
+
+**Sounding-board call budget per session**: aim for **6–12 `deep_thinker` calls** (cheap, ~5–10 min each — they run while you do other things) and **0–1 `deep_researcher` calls** (heavyweight, ~1–2 hr — only at Phase 0 or major pivot). Calling `deep_thinker` fewer than 6 times in a serious ideation session means you're underusing it.
 
 **Key Principles**:
+- **Call `deep_thinker` aggressively** — if you're between two framings, ask it. If you're not sure an idea is novel, ask it. If you're committing to a direction, ask it. The cost of calling is 10 minutes; the cost of NOT calling is silent.
 - Push for specificity—vague ideas ("improve efficiency") are not actionable
 - Challenge assumptions—ask "why?" at least three times
 - Maintain a written list of all candidates, even rejected ones (they may recombine later)
+- Save important `deep_thinker` exchanges to `literature/_deep_thinker_<topic>_<date>.md` so future sessions can read them
 - The researcher makes the final call on which ideas to pursue; the agent facilitates structured thinking
