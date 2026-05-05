@@ -2,10 +2,14 @@
 # lab_gpu_pick.sh SERVER [MIN_FREE_MIB]
 #
 # Pick a free GPU index on SERVER. "Free" means free memory >= MIN_FREE_MIB
-# AND no other container is currently bound to that device by lab_dispatch.sh.
+# AND no other autoresearch worker container is currently bound to that device.
 # Prints the chosen GPU index to stdout. Exits non-zero if no GPU qualifies.
 #
 # Used by autoresearch before lab_dispatch.sh.
+#
+# When SERVER is the control server (orchestrator's host), GPU info is queried
+# by running a minimal --gpus all docker container, since the orchestrator
+# container itself does not have the NVIDIA runtime installed.
 
 set -euo pipefail
 
@@ -13,31 +17,36 @@ SERVER="${1:?usage: lab_gpu_pick.sh SERVER [MIN_FREE_MIB]}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/lab.env"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/_lab_lib.sh"
+
+require_server "$SERVER"
 
 THRESHOLD_DEFAULT="${GPU_BUSY_FREE_MIB_THRESHOLD:-2000}"
 MIN_FREE_MIB="${2:-$THRESHOLD_DEFAULT}"
 
-# Resolve LAB_<server>_HOST. Bash variable names cannot contain '-', so normalize.
-_KEY="${SERVER//-/_}"
-HOST_VAR="LAB_${_KEY}_HOST"
-HOST="${!HOST_VAR:-}"
-if [[ -z "$HOST" ]]; then
-  echo "ERROR: unknown server '$SERVER'. Configure LAB_${_KEY}_HOST in lab.env." >&2
-  exit 2
+# Free memory per GPU. On the control server we still call nvidia-smi via the
+# host (DooD): a tiny docker run --gpus all --rm container exposes nvidia-smi.
+GPU_QUERY_IMG="${GPU_QUERY_IMAGE:-nvidia/cuda:12.4.0-base-ubuntu22.04}"
+
+if [[ -z "$(server_host "$SERVER")" ]]; then
+  # local control server: use docker
+  mapfile -t GPU_FREE < <(docker run --rm --gpus all "$GPU_QUERY_IMG" \
+    nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits 2>/dev/null)
+else
+  mapfile -t GPU_FREE < <(on_server_sh "$SERVER" \
+    "nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits")
 fi
 
-# Per-device free memory (MiB) on the target server.
-mapfile -t GPU_FREE < <(ssh -o BatchMode=yes "$HOST" \
-  "nvidia-smi --query-gpu=index,memory.free --format=csv,noheader,nounits")
-
 if [[ ${#GPU_FREE[@]} -eq 0 ]]; then
-  echo "ERROR: nvidia-smi returned no GPUs on $HOST" >&2
+  echo "ERROR: nvidia-smi returned no GPUs on $SERVER" >&2
   exit 3
 fi
 
 # GPU indices currently held by autoresearch-launched containers (label set by lab_dispatch.sh).
-mapfile -t HELD < <(ssh -o BatchMode=yes "$HOST" \
-  "docker ps --filter label=autoresearch.gpu --format '{{.Label \"autoresearch.gpu\"}}'" 2>/dev/null || true)
+mapfile -t HELD < <(on_server_sh "$SERVER" \
+  'docker ps --filter label=autoresearch.gpu --format "{{.Label \"autoresearch.gpu\"}}"' \
+  2>/dev/null || true)
 
 is_held() {
   local idx="$1"

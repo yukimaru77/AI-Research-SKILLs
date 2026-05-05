@@ -15,16 +15,15 @@ OUT="${3:?usage: lab_collect.sh SERVER CONTAINER OUTPUT_DIR}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/lab.env"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/_lab_lib.sh"
 
-_KEY="${SERVER//-/_}"
-HOST_VAR="LAB_${_KEY}_HOST"
-HOST="${!HOST_VAR:-}"
-[[ -z "$HOST" ]] && { echo "ERROR: unknown server $SERVER" >&2; exit 2; }
+require_server "$SERVER"
 
 mkdir -p "$OUT"
 
-ssh -o BatchMode=yes "$HOST" "docker logs $NAME"        > "$OUT/stdout_stderr.log"  2>"$OUT/.collect_err.log" || true
-ssh -o BatchMode=yes "$HOST" "docker inspect $NAME"     > "$OUT/inspect.json" 2>>"$OUT/.collect_err.log"     || true
+on_server_sh "$SERVER" "docker logs $NAME"        > "$OUT/stdout_stderr.log"  2>"$OUT/.collect_err.log" || true
+on_server_sh "$SERVER" "docker inspect $NAME"     > "$OUT/inspect.json"       2>>"$OUT/.collect_err.log" || true
 
 cat > "$OUT/_meta.txt" <<EOF
 container_name=$NAME

@@ -10,36 +10,30 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/lab.env"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/_lab_lib.sh"
 
 list_for() {
   local server="$1"
-  local key host
-  key="${server//-/_}"
-  host="LAB_${key}_HOST"
-  host="${!host:-}"
-  [[ -z "$host" ]] && return
-  echo "=== $server ($host) ==="
-  ssh -o BatchMode=yes "$host" \
+  require_server "$server" || return 0
+  echo "=== $server ($(server_host "$server" || echo local)) ==="
+  on_server_sh "$server" \
     'docker ps -a --filter label=autoresearch.server --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Label \"autoresearch.gpu\"}}"' \
-    || echo "  (ssh failed)"
+    || echo "  (command failed)"
 }
 
 probe_one() {
   local server="$1" name="$2"
-  local key host
-  key="${server//-/_}"
-  host="LAB_${key}_HOST"
-  host="${!host:-}"
-  [[ -z "$host" ]] && { echo "gone"; return; }
-  if ! ssh -o BatchMode=yes "$host" "docker container inspect $name >/dev/null 2>&1"; then
+  require_server "$server" || { echo "gone"; return; }
+  if ! on_server_sh "$server" "docker container inspect $name >/dev/null 2>&1"; then
     echo "gone"; return
   fi
   local state code
-  state=$(ssh "$host" "docker inspect -f '{{.State.Status}}' $name")
+  state=$(on_server_sh "$server" "docker inspect -f '{{.State.Status}}' $name")
   if [[ "$state" == "running" ]]; then
     echo "running"
   else
-    code=$(ssh "$host" "docker inspect -f '{{.State.ExitCode}}' $name")
+    code=$(on_server_sh "$server" "docker inspect -f '{{.State.ExitCode}}' $name")
     if [[ "$code" == "0" ]]; then
       echo "done(exit=0)"
     else
