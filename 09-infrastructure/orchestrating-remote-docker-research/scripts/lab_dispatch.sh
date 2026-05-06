@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# lab_dispatch.sh SERVER --image IMG --gpu N --name NAME [--mount-workspace] [--mount HOST:CONTAINER ...] --cmd "..."
+# lab_dispatch.sh SERVER --image IMG --gpu N --name NAME [--mount-workspace] \
+#                 [--mount HOST:CONTAINER ...] [--as-root|--user UID:GID] --cmd "..."
 #
 # Dispatch a worker container on SERVER, pinned to GPU index N.
 # Prints the resulting container ID on stdout. Container runs detached.
@@ -8,6 +9,10 @@
 #   - container is labeled autoresearch.gpu=<N>      (so lab_gpu_pick.sh sees it)
 #   - container is labeled autoresearch.server=<S>   (for status queries)
 #   - workspace mount uses LAB_<server>_WORKSPACE when --mount-workspace is set
+#   - by default, the worker runs as the orchestrator's host uid:gid so files
+#     in the shared workspace are NOT owned by root. Override with --as-root
+#     (image needs root for apt/install, but workspace files end up root-owned)
+#     or --user UID:GID to set explicitly.
 #
 # When SERVER is the control server, runs `docker run` locally (no SSH),
 # talking to the host daemon via the mounted /var/run/docker.sock.
@@ -28,6 +33,8 @@ CMD=""
 declare -a EXTRA_MOUNTS=()
 MOUNT_WS=0
 DETACH=1
+AS_HOST_USER=1   # default: run as orchestrator host user so files in workspace are owned correctly
+USER_OVERRIDE=""
 
 usage() {
   sed -n '2,16p' "${BASH_SOURCE[0]}" >&2
@@ -48,6 +55,8 @@ while (( $# > 0 )); do
     --mount-workspace)  MOUNT_WS=1; shift ;;
     --mount)            EXTRA_MOUNTS+=("$2"); shift 2 ;;
     --foreground)       DETACH=0; shift ;;
+    --as-root)          AS_HOST_USER=0; USER_OVERRIDE=""; shift ;;
+    --user)             USER_OVERRIDE="$2"; AS_HOST_USER=0; shift 2 ;;
     -h|--help)          usage ;;
     *)                  echo "unknown arg: $1" >&2; usage ;;
   esac
@@ -71,9 +80,19 @@ done
 DETACH_FLAGS="-d"
 (( DETACH )) || DETACH_FLAGS="--rm -i"
 
+# Resolve --user. Default: host user (matches orchestrator's uid:gid so files in
+# the shared workspace are owned correctly). Override with --as-root or --user N:M.
+USER_FLAGS=""
+if [[ -n "$USER_OVERRIDE" ]]; then
+  USER_FLAGS="--user $USER_OVERRIDE"
+elif (( AS_HOST_USER )); then
+  USER_FLAGS="--user $(id -u):$(id -g)"
+fi
+
 # Build a single shell snippet — runs locally on control server, or via ssh otherwise.
 # We escape arguments with %q to be safe through shell.
 _DOCKER_RUN_ARGS=("docker" "run" $DETACH_FLAGS \
+  $USER_FLAGS \
   "--name" "$NAME" \
   "--gpus" "\"device=$GPU\"" \
   "--label" "autoresearch.gpu=$GPU" \
